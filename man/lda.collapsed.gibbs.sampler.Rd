@@ -27,7 +27,7 @@ eta, annotations, params, variance, logistic = FALSE, lambda = 10,
 regularise = FALSE, method = "sLDA", trace = 0L, MaxNWts=3000)
 
 mmsb.collapsed.gibbs.sampler(network, K, num.iterations, alpha,
-beta.prior, initial = NULL, burnin = NULL, trace = 0L)
+beta.prior, initial = NULL, burnin = NULL, trace = 0L, thin = NULL)
 
 lda.cvb0(documents, K, vocab, num.iterations, alpha, eta, trace = 0L)
 }
@@ -150,6 +150,10 @@ lda.cvb0(documents, K, vocab, num.iterations, alpha, eta, trace = 0L)
   set when this option is used. This is best use for sampling test
   documents.
 }
+  \item{thin}{
+    A scalar integer indicating the thinning parameter for storing samples.
+    Activates storage of the samples if non-NULL.
+}
 
 }
 \value{
@@ -194,6 +198,9 @@ A fitted model as a list with the following components:
     matrix indicating the number of times the source of a link was
     assigned to a topic (row) and the destination was assigned to
     another (column).}
+  \item{samples}{Only for
+    \code{mmsb.collapsed.gibbs.sampler} when argument \code{thin} is non-NULL.
+    A list containing samples for the latent variables of the model.}
   \item{model}{For \code{slda.em}, a model of type \code{\link{lm}},
     the regression
     model fitted to the annotations.}

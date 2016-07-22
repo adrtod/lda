@@ -44,16 +44,17 @@ function (filename, vocab = NULL, num.topics = NULL, ignore.last.row = TRUE)
 }
 .pairwise.link.lda.collapsed.gibbs.sampler <-
 function (documents, K, vocab, num.iterations, alpha, eta, nbeta,
-    net.annotations, initial = NULL, burnin = NULL, trace = 0L)
+    net.annotations, initial = NULL, burnin = NULL, trace = 0L, 
+    thin = NULL)
 {
     retval <- structure(.Call("collapsedGibbsSampler", documents,
         as.integer(K), as.integer(length(vocab)), as.integer(num.iterations),
         as.double(alpha), as.double(eta), NULL, NULL, NULL, NULL,
         NULL, nbeta, as.logical(net.annotations), initial, burnin,
-        FALSE, trace, FALSE), names = c("assignments", "topics",
+        FALSE, trace, FALSE, thin), names = c("assignments", "topics",
         "topic_sums", "document_sums", if (is.null(burnin)) NA else "document_expects",
         "net.assignments.left", "net.assignments.right", "blocks.neg",
-        "blocks.pos"))
+        "blocks.pos", NA, if (is.null(thin)) NA else "samples"))
     colnames(retval$topics) <- vocab
     retval
 }

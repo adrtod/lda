@@ -491,7 +491,8 @@ SEXP collapsedGibbsSampler(SEXP documents,
     SEXP burnin_,
     SEXP compute_log_likelihood_,
     SEXP trace_,
-    SEXP freeze_topics_) {
+    SEXP freeze_topics_,
+    SEXP thin_) {
   GetRNGstate();
   int dd;
   int ii;
@@ -586,7 +587,7 @@ SEXP collapsedGibbsSampler(SEXP documents,
   }
 
   SEXP retval;
-  PROTECT(retval = allocVector(VECSXP, 10));
+  PROTECT(retval = allocVector(VECSXP, 11));
 
   SEXP nbeta_one, nbeta_zero;
   SEXP nassignments_left, nassignments_right;
@@ -645,6 +646,34 @@ SEXP collapsedGibbsSampler(SEXP documents,
     for (ii = 0; ii < K * nd; ++ii) {
       INTEGER(document_expects)[ii] = 0;
     }
+  }
+  
+  // Adrien Todeschini 22-07-2016
+  /* Store samples */
+  int thin = 1;
+  int nsamples = 0;
+  SEXP samples = NULL;
+  SEXP document_sums_samples = NULL;
+  SEXP nassignments_left_samples = NULL;
+  SEXP nassignments_right_samples = NULL;
+  SEXP nbeta_zero_samples = NULL;
+  SEXP nbeta_one_samples = NULL;
+  if (length(thin_) > 0) {
+    CHECKLEN(thin_, Integer, 1);
+    thin = INTEGER(thin_)[0];
+    if (thin <= 0) {
+      error("thin must be strictly positive.");
+    }
+    nsamples = (int)(N-((burnin>-1)?burnin:0))/thin;
+    if (trace >= 1) {
+      REprintf("Sampling %d samples\n", nsamples);
+    }
+    SET_VECTOR_ELT(retval, 10, samples = allocVector(VECSXP, 5));
+    SET_VECTOR_ELT(samples, 0, document_sums_samples = allocVector(VECSXP, nsamples));
+    SET_VECTOR_ELT(samples, 1, nassignments_left_samples = allocVector(VECSXP, nsamples));
+    SET_VECTOR_ELT(samples, 2, nassignments_right_samples = allocVector(VECSXP, nsamples));
+    SET_VECTOR_ELT(samples, 3, nbeta_zero_samples = allocVector(VECSXP, nsamples));
+    SET_VECTOR_ELT(samples, 4, nbeta_one_samples = allocVector(VECSXP, nsamples));
   }
 
   if (!isNull(initial_)) {
@@ -771,6 +800,7 @@ SEXP collapsedGibbsSampler(SEXP documents,
   }
 
   int iteration;
+  int isample = 0; // sample index. Adrien Todeschini 22-07-2016
   for (iteration = 0; iteration < N; ++iteration) {
     if (trace >= 1) {
       REprintf("Iteration %d\n", iteration);
@@ -1100,11 +1130,41 @@ SEXP collapsedGibbsSampler(SEXP documents,
       REAL(log_likelihood)[2 * iteration] = doc_ll - const_prior + topic_ll - const_ll;
       REAL(log_likelihood)[2 * iteration + 1] = topic_ll - const_ll;
     }
+    
+    // Adrien Todeschini 22-07-2016
+    /* Store mcmc samples */
+    if (isample<nsamples && iteration>=burnin && (iteration-((burnin>-1)?burnin:0))%thin==0) {
+      if (trace >= 1) {
+        REprintf("Storing sample %d\n", isample+1);
+      }
+      // allocate
+      SET_VECTOR_ELT(document_sums_samples, isample, allocMatrix(INTSXP, K, nd));
+      SET_VECTOR_ELT(nassignments_left_samples, isample, allocMatrix(INTSXP, nd, nd));
+      SET_VECTOR_ELT(nassignments_right_samples, isample, allocMatrix(INTSXP, nd, nd));
+      SET_VECTOR_ELT(nbeta_zero_samples, isample, allocMatrix(INTSXP, K, K));
+      SET_VECTOR_ELT(nbeta_one_samples, isample, allocMatrix(INTSXP, K, K));
+      // copy
+      for (ii = 0; ii < K * nd; ++ii) {
+        INTEGER(VECTOR_ELT(document_sums_samples, isample))[ii] = INTEGER(document_sums)[ii];
+      }
+      for (ii = 0; ii < nd * nd; ++ii) {
+        INTEGER(VECTOR_ELT(nassignments_left_samples, isample))[ii] = INTEGER(nassignments_left)[ii];
+        INTEGER(VECTOR_ELT(nassignments_right_samples, isample))[ii] = INTEGER(nassignments_right)[ii];
+      }
+      for (ii = 0; ii < K * K; ++ii) {
+        INTEGER(VECTOR_ELT(nbeta_zero_samples, isample))[ii] = INTEGER(nbeta_zero)[ii];
+        INTEGER(VECTOR_ELT(nbeta_one_samples, isample))[ii] = INTEGER(nbeta_one)[ii];
+      }
+      // increment sample index
+      ++isample;
+    }
+    
   }
 
 
   PutRNGstate();
   UNPROTECT(1);
+    
   return retval;
 }
 

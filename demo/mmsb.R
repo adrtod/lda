@@ -9,7 +9,8 @@ result <-
                                K = 3, num.iterations=30,
                                alpha = 0.1,
                                burnin = 20L,
-                               beta.prior = list(1, diag(5, 3) + 1))
+                               beta.prior = list(1, diag(5, 3) + 1),
+                               thin = 1L)
 print(result$document_expects)
 cat("Time to plot the results...\n")
 memberships <- with(result, t(document_sums) / colSums(document_sums))
