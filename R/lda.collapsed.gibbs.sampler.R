@@ -15,7 +15,7 @@ function (documents, K, vocab, num.iterations, alpha, eta, initial = NULL,
         as.integer(K), lengths, as.integer(num.iterations), as.double(alpha), 
         as.double(eta), NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
         initial, as.integer(burnin), as.logical(compute.log.likelihood), 
-        trace, as.logical(freeze.topics)), names = c("assignments", 
+        trace, as.logical(freeze.topics), NULL), names = c("assignments", 
         "topics", "topic_sums", "document_sums", if (is.null(burnin)) NA else "document_expects", 
         NA, NA, NA, NA, if (compute.log.likelihood) "log.likelihoods" else NA))
     colnames(retval$topics) <- all.vocab
