@@ -2,4 +2,4 @@
 
 ## Changelog
 22-07-2016: Adrien Todeschini
-- added samples storage in mmmsb with patameter thin
+- added samples storage in mmmsb with parameter thin
