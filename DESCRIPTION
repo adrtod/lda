@@ -1,6 +1,6 @@
 Package: lda
 Title: Collapsed Gibbs Sampling Methods for Topic Models
-Version: 1.4.3.9000
+Version: 1.4.3
 Authors@R: c(
   person("Jonathan", "Chang", email = "slycoder@gmail.com", role = c("aut", "cre")),
   person("Adrien", "Todeschini", email = "adrien.todeschini@gmail.com", role = "ctb"))

@@ -2,3 +2,4 @@
 ^\.Rproj\.user$
 DESCRIPTION.orig
 DESCRIPTION.rej
+^NEWS\.md$
